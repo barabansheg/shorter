@@ -1,6 +1,8 @@
 # Link
-
-**TODO: Add description**
+Run: 
+```shell
+mix run --no-halt
+```
 
 ## Installation
 
