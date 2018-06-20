@@ -1,6 +1,6 @@
 # Link
 Run: 
-```shell
+```bash
 mix run --no-halt
 ```
 
