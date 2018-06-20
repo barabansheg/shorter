@@ -21,3 +21,8 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/link](https://hexdocs.pm/link).
 
+# TODO: 
+1. Correct processing if hash not found
+2. Token for getting info about url (counting)
+3. Correct processing of remote mongodb uri
+4. Do frontend
