@@ -14,7 +14,7 @@ defmodule Link.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :plug, :cowboy],
       mod: {Link, []}
     ]
   end
@@ -23,7 +23,7 @@ defmodule Link.MixProject do
   defp deps do
     [
       {:cowboy, "~> 1.1.2"},
-      {:plug, "~> 1.6   ", override: true},
+      {:plug, "~> 1.6"},
       {:mongodb, ">= 0.0.0"},
       {:poolboy, ">= 0.0.0"},
       {:poison, ">= 0.0.0"},
