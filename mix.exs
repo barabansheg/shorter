@@ -23,7 +23,7 @@ defmodule Link.MixProject do
   defp deps do
     [
       {:cowboy, "~> 1.1.2"},
-      {:plug, "~> 1.3.4"},
+      {:plug, "~> 1.6   ", override: true},
       {:mongodb, ">= 0.0.0"},
       {:poolboy, ">= 0.0.0"},
       {:poison, ">= 0.0.0"},

@@ -27,19 +27,20 @@ defmodule Link.Router do
     end
 
     def get_url_by_hash(hash) do
-      cursor =  Mongo.find(:mongo, "urls", %{hash: hash}, pool: DBConnection.Poolboy)
-      result = Enum.to_list(cursor)
-      [url_record | _] = result 
+      url_record = Mongo.find(:mongo, "urls", %{hash: hash}, pool: DBConnection.Poolboy) |> Enum.to_list |> List.first
       Mongo.update_one(:mongo, "urls", %{hash: hash}, %{"$inc": %{count: 1}}, pool: DBConnection.Poolboy)
       url_record["url"]
     end
 
     def redirect_to_url(conn) do
       url = get_url_by_hash(conn.path_params["hash"])
-      conn = Plug.Conn.put_resp_header(conn, "Location", url  ) 
-      send_resp(conn, 301, "Redirecting...")
+      case url do
+        nil -> send_resp(conn, 404, 'Url not found')
+        _ ->  conn = Plug.Conn.put_resp_header(conn, "Location", url  ) 
+              send_resp(conn, 301, "Redirecting...")
+        end
     end
-
+    
     get("/", do: send_resp(conn, 200, "Welcome"))
     get("/ping", do: send_resp(conn, 200, "pong"))
     post("/add", do: add_link(conn))
