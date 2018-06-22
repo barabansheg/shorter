@@ -26,25 +26,39 @@ defmodule Link.Router do
       end
     end
 
-    def get_url_by_hash(hash) do
-      url_record = Mongo.find(:mongo, "urls", %{hash: hash}, pool: DBConnection.Poolboy) |> Enum.to_list |> List.first
-      Mongo.update_one(:mongo, "urls", %{hash: hash}, %{"$inc": %{count: 1}}, pool: DBConnection.Poolboy)
-      url_record["url"]
+    def get_url_record(query) do
+      Mongo.find(:mongo, "urls", query, pool: DBConnection.Poolboy) |> Enum.to_list |> List.first
     end
 
     def redirect_to_url(conn) do
-      url = get_url_by_hash(conn.path_params["hash"])
+      query = %{hash: conn.path_params["hash"]}
+      url_record = get_url_record(query)
+      url = url_record["url"]
       case url do
         nil -> send_resp(conn, 404, 'Url not found')
-        _ ->  conn = Plug.Conn.put_resp_header(conn, "Location", url  ) 
+        _ ->  Mongo.update_one(:mongo, "urls", query, %{"$inc": %{count: 1}}, pool: DBConnection.Poolboy)
+              conn = Plug.Conn.put_resp_header(conn, "Location", url) 
               send_resp(conn, 301, "Redirecting...")
         end
     end
     
+    def get_info_by_token(conn) do
+      query = %{token: conn.path_params["token"]}
+      url_record = get_url_record(query)
+      count = url_record["count"]
+      case count do
+        nil -> send_resp(conn, 404, 'Token not found')
+        _ ->   send_resp(conn, 200, to_string(count))
+        end
+    end
+
+
+       
     get("/", do: send_resp(conn, 200, "Welcome"))
     get("/ping", do: send_resp(conn, 200, "pong"))
     post("/add", do: add_link(conn))
     get("/:hash", do: redirect_to_url(conn))
+    get("/info/:token", do: get_info_by_token(conn))
     match(_, do: send_resp(conn, 404, "Oops!"))
 
   end
