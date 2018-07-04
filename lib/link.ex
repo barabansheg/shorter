@@ -6,7 +6,7 @@ defmodule Link do
     def start(_type, _args) do
     children = [
       Plug.Adapters.Cowboy.child_spec(:http, Link.Router, [], port: 8080),
-      worker(Mongo, [[name: :mongo, database: "test", pool: DBConnection.Poolboy]]) 
+      worker(Mongo, [[name: :mongo, database: "test", pool: DBConnection.Poolboy, hostname: "db"]])
     ]
 
     Logger.info("Started application")
