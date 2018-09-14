@@ -15,14 +15,36 @@ defmodule Link.Router do
     
     plug(:match)
     plug(:dispatch)
+
+    def render_response(type, result \\ %{}, errors \\ [])
+
+    def render_response(:json, result, errors) do
+      Poison.encode!(%{"result" => result, "errors" => errors})
+    end
+
+    def render_response(:plain, result, errors) do
+      Poison.encode!(%{"result" => result, "errors" => errors})
+    end
+
+    def send_response_plain(conn, status, data, errors \\ []) do
+      send_resp(conn, status, render_response(:plain, data, errors))
+    end
+
+    def send_response_json(conn, status, data, errors \\ []) do
+      conn = Plug.Conn.put_resp_header(conn, "Content-Type", "application/json") 
+      send_resp(conn, status, render_response(:json, data, errors))
+    end
+
     def add_link(conn) do
       %{"url" => url} = conn.body_params
       case UrlValidator.valid_url(url) do
         {:ok, valid_url} ->
-          Mongo.insert_one(:mongo, "urls", %{url: valid_url, count: 0, hash: Randomizer.randomizer(6)}, pool: DBConnection.Poolboy)
-          send_resp(conn, 200, "OK")
+          token = Randomizer.randomizer(10)
+          hash = Randomizer.randomizer(6)
+          Mongo.insert_one(:mongo, "urls", %{url: valid_url, count: 0, hash: hash, token: token}, pool: DBConnection.Poolboy)
+          send_response_json(conn, 200, %{"token" => token, "hash" => hash})
         _ ->  
-          send_resp(conn, 422, "Validation Error")
+          send_response_json(conn, 422, %{}, ["UrlValidationError"])
       end
     end
 
@@ -35,10 +57,10 @@ defmodule Link.Router do
       url_record = get_url_record(query)
       url = url_record["url"]
       case url do
-        nil -> send_resp(conn, 404, 'Url not found')
+        nil -> send_response_json(conn, 404,  %{}, ["UrlNotFound"])
         _ ->  Mongo.update_one(:mongo, "urls", query, %{"$inc": %{count: 1}}, pool: DBConnection.Poolboy)
               conn = Plug.Conn.put_resp_header(conn, "Location", url) 
-              send_resp(conn, 301, "Redirecting...")
+              send_response_plain(conn, 301, "Redirecting...")
         end
     end
     
@@ -47,8 +69,8 @@ defmodule Link.Router do
       url_record = get_url_record(query)
       count = url_record["count"]
       case count do
-        nil -> send_resp(conn, 404, 'Token not found')
-        _ ->   send_resp(conn, 200, to_string(count))
+        nil -> send_response_json(conn, 404, %{}, ["TokenNotfound"])
+        _ ->   send_response_json(conn, 200, %{count: count})
         end
     end
 
