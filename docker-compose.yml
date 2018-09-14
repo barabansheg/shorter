@@ -6,6 +6,8 @@ services:
       - "8080:8080"
     links:
     - db
+    environment:
+    - DB_URL=mongodb://db:27017/urls
   db:
     ports:
       - "27017:27017"

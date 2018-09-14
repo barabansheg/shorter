@@ -4,10 +4,11 @@ defmodule Link do
   import Supervisor.Spec
 
     def start(_type, _args) do
-    children = [
-      Plug.Adapters.Cowboy.child_spec(:http, Link.Router, [], port: 8080),
-      worker(Mongo, [[name: :mongo, database: "test", pool: DBConnection.Poolboy, hostname: "localhost"]])
-    ]
+      {:ok, db_url} = Keyword.fetch(Application.get_env(:link, Link), :db_url)
+      children = [
+        Plug.Adapters.Cowboy.child_spec(:http, Link.Router, [], port: 8080),
+        worker(Mongo, [[name: :mongo, pool: DBConnection.Poolboy, url: db_url]])
+      ] 
 
     Logger.info("Started application")
 
