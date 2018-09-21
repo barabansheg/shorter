@@ -15,7 +15,7 @@ defmodule Link.MixProject do
   def application do
     [
       extra_applications: [:logger, :plug, :cowboy],
-      mod: {Link, []}
+      mod: {Link, []},
     ]
   end
 

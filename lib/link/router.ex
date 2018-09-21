@@ -16,6 +16,17 @@ defmodule Link.Router do
     plug(:match)
     plug(:dispatch)
 
+    @doc ~S"""
+    Take type and result and errors params, return json string
+
+    ## Example
+      iex>Link.Router.render_response(:json, %{"test" => "test ok"}, [])  
+      "{\"result\":{\"test\":\"test ok\"},\"errors\":[]}"
+
+      iex>Link.Router.render_response(:plain, "test", [])  
+      "{\"result\":\"test\",\"errors\":[]}"
+    """
+
     def render_response(type, result \\ %{}, errors \\ [])
 
     def render_response(:json, result, errors) do
@@ -31,7 +42,7 @@ defmodule Link.Router do
     end
 
     def send_response_json(conn, status, data, errors \\ []) do
-      conn = Plug.Conn.put_resp_header(conn, "Content-Type", "application/json") 
+      conn = Plug.Conn.put_resp_header(conn, "content-type", "application/json") 
       send_resp(conn, status, render_response(:json, data, errors))
     end
 
@@ -42,7 +53,7 @@ defmodule Link.Router do
           token = Randomizer.randomizer(10)
           hash = Randomizer.randomizer(6)
           Mongo.insert_one(:mongo, "urls", %{url: valid_url, count: 0, hash: hash, token: token}, pool: DBConnection.Poolboy)
-          send_response_json(conn, 200, %{"token" => token, "hash" => hash})
+          send_response_json(conn, 201, %{"token" => token, "hash" => hash})
         _ ->  
           send_response_json(conn, 422, %{}, ["UrlValidationError"])
       end
@@ -76,11 +87,10 @@ defmodule Link.Router do
 
 
        
-    get("/", do: send_resp(conn, 200, "Welcome"))
-    get("/ping", do: send_resp(conn, 200, "pong"))
+    get("/", do: send_response_plain(conn, 200, "Welcome"))
+    get("/ping", do: send_response_plain(conn, 200, "pong"))
     post("/add", do: add_link(conn))
     get("/:hash", do: redirect_to_url(conn))
     get("/info/:token", do: get_info_by_token(conn))
-    match(_, do: send_resp(conn, 404, "Oops!"))
-
+    match(_, do: send_response_plain(conn, 404, "", ["RouteNotFound"]))
   end
