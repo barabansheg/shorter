@@ -5,14 +5,14 @@ defmodule Link.Router do
     alias Link.Randomizer
     alias Link.UrlValidator
 
-    plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)  
-    
+    plug(Plug.Parsers, parsers: [:json], json_decoder: Poison)
+
     plug(
       VerifyRequest,
       fields: ["url"],
       paths: ["/add"]
     )
-    
+
     plug(:match)
     plug(:dispatch)
 
@@ -20,10 +20,10 @@ defmodule Link.Router do
     Take type and result and errors params, return json string
 
     ## Example
-      iex>Link.Router.render_response(:json, %{"test" => "test ok"}, [])  
+      iex>Link.Router.render_response(:json, %{"test" => "test ok"}, [])
       "{\"result\":{\"test\":\"test ok\"},\"errors\":[]}"
 
-      iex>Link.Router.render_response(:plain, "test", [])  
+      iex>Link.Router.render_response(:plain, "test", [])
       "{\"result\":\"test\",\"errors\":[]}"
     """
 
@@ -42,7 +42,7 @@ defmodule Link.Router do
     end
 
     def send_response_json(conn, status, data, errors \\ []) do
-      conn = Plug.Conn.put_resp_header(conn, "content-type", "application/json") 
+      conn = Plug.Conn.put_resp_header(conn, "content-type", "application/json")
       send_resp(conn, status, render_response(:json, data, errors))
     end
 
@@ -54,7 +54,7 @@ defmodule Link.Router do
           hash = Randomizer.randomizer(6)
           Mongo.insert_one(:mongo, "urls", %{url: valid_url, count: 0, hash: hash, token: token}, pool: DBConnection.Poolboy)
           send_response_json(conn, 201, %{"token" => token, "hash" => hash})
-        _ ->  
+        _ ->
           send_response_json(conn, 422, %{}, ["UrlValidationError"])
       end
     end
@@ -70,11 +70,11 @@ defmodule Link.Router do
       case url do
         nil -> send_response_json(conn, 404,  %{}, ["UrlNotFound"])
         _ ->  Mongo.update_one(:mongo, "urls", query, %{"$inc": %{count: 1}}, pool: DBConnection.Poolboy)
-              conn = Plug.Conn.put_resp_header(conn, "Location", url) 
+              conn = Plug.Conn.put_resp_header(conn, "location", url)
               send_response_plain(conn, 301, "Redirecting...")
         end
     end
-    
+
     def get_info_by_token(conn) do
       query = %{token: conn.path_params["token"]}
       url_record = get_url_record(query)
@@ -86,7 +86,7 @@ defmodule Link.Router do
     end
 
 
-       
+
     get("/", do: send_response_plain(conn, 200, "Welcome"))
     get("/ping", do: send_response_plain(conn, 200, "pong"))
     post("/add", do: add_link(conn))

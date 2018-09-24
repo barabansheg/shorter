@@ -24,7 +24,7 @@ defmodule Link.MixProject do
     [
       {:cowboy, "~> 1.1.2"},
       {:plug, "~> 1.6"},
-      {:mongodb, ">= 0.0.0"},
+      {:mongodb, "== 0.4.6"},
       {:poolboy, ">= 0.0.0"},
       {:poison, ">= 0.0.0"}
     ]
