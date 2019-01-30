@@ -15,7 +15,10 @@ defmodule Link.UrlAddHandler do
     end
 
     def allowed_methods(request, state) do
-        {["POST"], request, state}
+        request = :cowboy_req.set_resp_header("access-control-allow-origin", "*", request)
+        request = :cowboy_req.set_resp_header("access-control-allow-methods", "POST, OPTIONS", request)
+        request = :cowboy_req.set_resp_header("access-control-allow-headers", "content-type", request)
+        {["POST", "OPTIONS"], request, state}
     end
 
     def content_types_accepted(request, state) do
