@@ -11,6 +11,7 @@ defmodule Link.CowboyServer do
                 {'/', Link.WelcomeHandler, []},
                 {'/add', Link.UrlAddHandler, []},
                 {'/:hash', Link.RedirectHandler, []},
+                {'/info/:token', Link.CountHandler, []},
                 {:_, Link.NotFoundHandler, []},
                 
               ]
